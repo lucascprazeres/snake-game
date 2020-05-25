@@ -1,6 +1,9 @@
 import pygame
+from time import sleep
 from pysnakes.classes import Window
 from pysnakes.classes.Snake import Snake
+
+pygame.init()
 
 class Game:
     def __init__(self):
@@ -8,8 +11,10 @@ class Game:
         self.window = None
         self.clock = pygame.time.Clock()
         self.snake = None
-        # Game Rules
+        # window setting
         self.screen_size = (400, 300)
+        self.fps = 30
+        # Game Rules
         self.boundries = {
             "x":self.screen_size[0] - 10,
             "y":self.screen_size[1] - 10
@@ -35,7 +40,7 @@ class Game:
 
             self.game_loop()
 
-        self.quit()
+        self.set_game_over()
 
     def game_loop(self):
         self.listen_to_events()
@@ -43,7 +48,18 @@ class Game:
         self.refreshScreen()
         self.drawSnake()
         pygame.display.update()
-        self.clock.tick(30)
+        self.clock.tick(self.fps)
+
+    def set_game_over(self):
+        self.message('Game Over!', Window.COLORS["red"])
+        pygame.display.update()
+        sleep(2)
+        self.quit()
+
+    def message(self, msg, color):
+        font_style = pygame.font.SysFont(None, 50)
+        mesg = font_style.render(msg, True, color)
+        self.window.surface.blit(mesg, [self.screen_size[0]/4, self.screen_size[1]/4])
 
     def refreshScreen(self):
         self.window.surface.fill(Window.COLORS["black"])
