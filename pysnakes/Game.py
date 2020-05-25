@@ -13,7 +13,7 @@ class Game:
         self.clock = pygame.time.Clock()
         # window setting
         self.screen_size = (400, 300)
-        self.fps = 20
+        self.fps = 10
         # Game Rules
         self.boundries = {
             "x":self.screen_size[0] - 10,
@@ -21,7 +21,7 @@ class Game:
         }
         self.snake_block = 10
         self.snake_initial_pos = (200, 150)
-        self.snake_vel = 5
+        self.snake_vel = 10
 
     def start(self):
         self.window = Window.Window(self.screen_size)
@@ -58,11 +58,17 @@ class Game:
         self.snake.move()
         self.refreshScreen()
         self.drawn_apple()
+        self.update_snake_coordinates()
+
+        if self.snake_hits_itself():
+            self.game_is_paused = True
+
         self.draw_snake()
 
         if self.snake.pos_x == self.apple.pos_x and self.snake.pos_y == self.apple.pos_y:
             self.create_apple()
             self.score += 1
+            self.snake.length += 1
             print(self.score)
 
         self.clock.tick(self.fps)
@@ -79,17 +85,32 @@ class Game:
     def create_snake(self):
         self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos, self.snake_block)
 
+    def update_snake_coordinates(self):
+        self.snake.head = []
+        self.snake.head.append(self.snake.pos_x)
+        self.snake.head.append(self.snake.pos_y)
+        self.snake.body.append(self.snake.head)
+        if len(self.snake.body) > self.snake.length:
+            del self.snake.body[0]
+
+    def snake_hits_itself(self):
+        for block in self.snake.body[:-1]:
+            if block == self.snake.head:
+                return True
+        return False
+
     def draw_snake(self):
         surface = self.window.surface
         color = self.snake.color
-        pos = (self.snake.pos_x, self.snake.pos_y)
-        size = self.snake.size
+        area_per_block = (self.snake.block, self.snake.block)
 
-        pygame.draw.rect(surface, color, [*pos, *size])
+        for block in self.snake.body:
+            pygame.draw.rect(surface, color, [block[0], block[1], *area_per_block])
+
         pygame.display.update()
 
     def create_apple(self):
-        self.apple = Apple(self.screen_size[0], self.screen_size[1], self.snake.size[0], Window.COLORS["red"])
+        self.apple = Apple(self.screen_size[0], self.screen_size[1], self.snake.block, Window.COLORS["red"])
 
     def drawn_apple(self):
         surface = self.window.surface
