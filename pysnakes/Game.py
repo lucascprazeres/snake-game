@@ -1,6 +1,7 @@
 import pygame
 from pysnakes.classes import Window
 from pysnakes.classes.Snake import Snake
+from pysnakes.classes.Apple import Apple
 
 pygame.init()
 
@@ -8,23 +9,24 @@ class Game:
     def __init__(self):
         self.game_is_paused = False
         self.game_over = False
-        self.window = None
+        self.score = 0
         self.clock = pygame.time.Clock()
-        self.snake = None
         # window setting
         self.screen_size = (400, 300)
-        self.fps = 30
+        self.fps = 20
         # Game Rules
         self.boundries = {
             "x":self.screen_size[0] - 10,
             "y":self.screen_size[1] - 10
         }
+        self.snake_block = 10
         self.snake_initial_pos = (200, 150)
-        self.snake_vel = 3
+        self.snake_vel = 5
 
     def start(self):
         self.window = Window.Window(self.screen_size)
-        self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos)
+        self.create_snake()
+        self.create_apple()
 
         while not self.game_over:
             while self.game_is_paused:
@@ -34,7 +36,9 @@ class Game:
             self.gameLoop()
 
     def restart(self):
-        self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos)
+        self.score = 0
+        self.create_snake()
+        self.create_apple()
         self.gameLoop()
 
     def gameLoop(self):
@@ -53,7 +57,14 @@ class Game:
         self.listen_to_events()
         self.snake.move()
         self.refreshScreen()
-        self.drawSnake()
+        self.drawn_apple()
+        self.draw_snake()
+
+        if self.snake.pos_x == self.apple.pos_x and self.snake.pos_y == self.apple.pos_y:
+            self.create_apple()
+            self.score += 1
+            print(self.score)
+
         self.clock.tick(self.fps)
 
     def message(self, msg, color):
@@ -65,7 +76,10 @@ class Game:
     def refreshScreen(self):
         self.window.surface.fill(Window.COLORS["black"])
 
-    def drawSnake(self):
+    def create_snake(self):
+        self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos, self.snake_block)
+
+    def draw_snake(self):
         surface = self.window.surface
         color = self.snake.color
         pos = (self.snake.pos_x, self.snake.pos_y)
@@ -73,6 +87,17 @@ class Game:
 
         pygame.draw.rect(surface, color, [*pos, *size])
         pygame.display.update()
+
+    def create_apple(self):
+        self.apple = Apple(self.screen_size[0], self.screen_size[1], self.snake.size[0], Window.COLORS["red"])
+
+    def drawn_apple(self):
+        surface = self.window.surface
+        pos = (self.apple.pos_x, self.apple.pos_y)
+        block = self.apple.block
+        color =self.apple.color
+
+        pygame.draw.rect(surface, color, [*pos, block, block])
 
 
     def listen_to_events(self):

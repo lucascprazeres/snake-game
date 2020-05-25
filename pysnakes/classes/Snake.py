@@ -1,7 +1,7 @@
 class Snake:
-    def __init__(self, color, position):
+    def __init__(self, color, position, block):
         self.color = color
-        self.size = (10, 10)
+        self.size = [block, block]
         (self.pos_x, self.pos_y) = position
         self.x_direction = 0
         self.y_direction = 0
