@@ -11,37 +11,39 @@ class Game:
         # Game Rules
         self.screen_size = (400, 300)
         self.boundries = {
-            "x":self.screen_size[0] - 15,
-            "y":self.screen_size[1] - 15
+            "x":self.screen_size[0] - 10,
+            "y":self.screen_size[1] - 10
         }
         self.snake_initial_pos = (200, 150)
-        self.snake_vel = 5
+        self.snake_vel = 3
 
     def start(self):
         self.window = Window.Window(self.screen_size)
         self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos)
 
         while not self.game_over:
+
             snake_hit_the_boundries = False
 
-            if self.boundries["x"] < self.snake.pos_x or self.snake.pos_x < 5:
+            if self.boundries["x"] < self.snake.pos_x or self.snake.pos_x < 0:
                 snake_hit_the_boundries = True
-            if self.boundries["y"] < self.snake.pos_y or self.snake.pos_y < 5:
+            if self.boundries["y"] < self.snake.pos_y or self.snake.pos_y < 0:
                 snake_hit_the_boundries = True
-
-            self.listen_to_events()
-            self.snake.move()
-            self.refreshScreen()
-            self.drawSnake()
-            pygame.display.update()
-            self.clock.tick(30)
-
-            print(snake_hit_the_boundries)
 
             if snake_hit_the_boundries:
                 self.game_over = True
 
+            self.game_loop()
+
         self.quit()
+
+    def game_loop(self):
+        self.listen_to_events()
+        self.snake.move()
+        self.refreshScreen()
+        self.drawSnake()
+        pygame.display.update()
+        self.clock.tick(30)
 
     def refreshScreen(self):
         self.window.surface.fill(Window.COLORS["black"])
