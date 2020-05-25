@@ -1,5 +1,4 @@
 import pygame
-from time import sleep
 from pysnakes.classes import Window
 from pysnakes.classes.Snake import Snake
 
@@ -7,6 +6,7 @@ pygame.init()
 
 class Game:
     def __init__(self):
+        self.game_is_paused = False
         self.game_over = False
         self.window = None
         self.clock = pygame.time.Clock()
@@ -27,39 +27,40 @@ class Game:
         self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos)
 
         while not self.game_over:
+            while self.game_is_paused:
+                self.refreshScreen()
+                self.message("You Lost! Press Q to quit or C to play again", Window.COLORS["red"])
+                self.listen_to_events()
+            self.gameLoop()
 
-            snake_hit_the_boundries = False
+    def restart(self):
+        self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos)
+        self.gameLoop()
 
-            if self.boundries["x"] < self.snake.pos_x or self.snake.pos_x < 0:
-                snake_hit_the_boundries = True
-            if self.boundries["y"] < self.snake.pos_y or self.snake.pos_y < 0:
-                snake_hit_the_boundries = True
+    def gameLoop(self):
 
-            if snake_hit_the_boundries:
-                self.game_over = True
+        snake_hit_the_boundries = False
 
-            self.game_loop()
+        if self.boundries["x"] < self.snake.pos_x or self.snake.pos_x < 0:
+            snake_hit_the_boundries = True
+        if self.boundries["y"] < self.snake.pos_y or self.snake.pos_y < 0:
+            snake_hit_the_boundries = True
 
-        self.set_game_over()
+        if snake_hit_the_boundries:
+            self.game_is_paused = True
+            return
 
-    def game_loop(self):
         self.listen_to_events()
         self.snake.move()
         self.refreshScreen()
         self.drawSnake()
-        pygame.display.update()
         self.clock.tick(self.fps)
 
-    def set_game_over(self):
-        self.message('Game Over!', Window.COLORS["red"])
-        pygame.display.update()
-        sleep(2)
-        self.quit()
-
     def message(self, msg, color):
-        font_style = pygame.font.SysFont(None, 50)
+        font_style = pygame.font.SysFont(None, 25)
         mesg = font_style.render(msg, True, color)
-        self.window.surface.blit(mesg, [self.screen_size[0]/4, self.screen_size[1]/4])
+        self.window.surface.blit(mesg, [20, 100])
+        pygame.display.update()
 
     def refreshScreen(self):
         self.window.surface.fill(Window.COLORS["black"])
@@ -71,6 +72,7 @@ class Game:
         size = self.snake.size
 
         pygame.draw.rect(surface, color, [*pos, *size])
+        pygame.display.update()
 
 
     def listen_to_events(self):
@@ -86,7 +88,15 @@ class Game:
                     self.snake.change_direction(self.snake_vel, 0)
                 elif event.key == pygame.K_LEFT:
                     self.snake.change_direction(-self.snake_vel, 0)
-
+            #unlocks it when the game is paused
+            if self.game_is_paused:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        self.game_over = True
+                        self.game_is_paused = False
+                    if event.key == pygame.K_c:
+                        self.game_is_paused = False
+                        self.restart()
 
     def quit(self):
         self.window.close()
