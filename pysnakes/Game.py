@@ -13,7 +13,7 @@ class Game:
         self.clock = pygame.time.Clock()
         # window setting
         self.screen_size = (400, 300)
-        self.fps = 10
+        self.fps = 15
         # Game Rules
         self.boundries = {
             "x":self.screen_size[0] - 10,
@@ -64,17 +64,25 @@ class Game:
             self.game_is_paused = True
 
         self.draw_snake()
+        self.display_score()
 
         if self.snake.pos_x == self.apple.pos_x and self.snake.pos_y == self.apple.pos_y:
             self.create_apple()
             self.score += 1
             self.snake.length += 1
-            print(self.score)
+
+        pygame.display.update()
 
         self.clock.tick(self.fps)
 
+    def display_score(self):
+        score_font = pygame.font.SysFont("comicsansms", 35)
+        value = score_font.render("Your Score: " + str(self.score), True, Window.COLORS["blue"])
+        self.window.surface.blit(value, [0, 0])
+
+
     def message(self, msg, color):
-        font_style = pygame.font.SysFont(None, 25)
+        font_style = pygame.font.SysFont("bahnschrift", 25)
         mesg = font_style.render(msg, True, color)
         self.window.surface.blit(mesg, [20, 100])
         pygame.display.update()
@@ -107,7 +115,7 @@ class Game:
         for block in self.snake.body:
             pygame.draw.rect(surface, color, [block[0], block[1], *area_per_block])
 
-        pygame.display.update()
+
 
     def create_apple(self):
         self.apple = Apple(self.screen_size[0], self.screen_size[1], self.snake.block, Window.COLORS["red"])
