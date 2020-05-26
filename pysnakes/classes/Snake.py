@@ -17,3 +17,10 @@ class Snake:
         self.pos_x += self.x_direction
         self.pos_y += self.y_direction
 
+        self.head = []
+        self.head.append(self.pos_x)
+        self.head.append(self.pos_y)
+        self.body.append(self.head)
+        if len(self.body) > self.length:
+            del self.body[0]
+

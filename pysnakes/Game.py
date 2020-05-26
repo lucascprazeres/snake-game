@@ -5,19 +5,19 @@ from pysnakes.classes.Apple import Apple
 
 pygame.init()
 
+
 class Game:
     def __init__(self):
-        self.game_is_paused = False
-        self.game_over = False
-        self.score = 0
+        self.window = None
         self.clock = pygame.time.Clock()
-        # window setting
+        self.game_is_paused = False
+        self.score = 0
         self.screen_size = (400, 300)
         self.fps = 15
         # Game Rules
         self.boundries = {
-            "x":self.screen_size[0] - 10,
-            "y":self.screen_size[1] - 10
+            "x": self.screen_size[0] - 10,
+            "y": self.screen_size[1] - 10
         }
         self.snake_block = 10
         self.snake_initial_pos = (200, 150)
@@ -28,20 +28,20 @@ class Game:
         self.create_snake()
         self.create_apple()
 
-        while not self.game_over:
+        while True:
             while self.game_is_paused:
-                self.refreshScreen()
+                self.refresh_screen()
                 self.message("You Lost! Press Q to quit or C to play again", Window.COLORS["red"])
                 self.listen_to_events()
-            self.gameLoop()
+            self.game_loop()
 
     def restart(self):
         self.score = 0
         self.create_snake()
         self.create_apple()
-        self.gameLoop()
+        self.game_loop()
 
-    def gameLoop(self):
+    def game_loop(self):
 
         snake_hit_the_boundries = False
 
@@ -54,22 +54,19 @@ class Game:
             self.game_is_paused = True
             return
 
+        if self.snake_hitted_itself():
+            self.game_is_paused = True
+            return
+
+        self.refresh_screen()
         self.listen_to_events()
         self.snake.move()
-        self.refreshScreen()
-        self.drawn_apple()
-        self.update_snake_coordinates()
-
-        if self.snake_hits_itself():
-            self.game_is_paused = True
-
         self.draw_snake()
+        self.drawn_apple()
         self.display_score()
 
         if self.snake.pos_x == self.apple.pos_x and self.snake.pos_y == self.apple.pos_y:
-            self.create_apple()
-            self.score += 1
-            self.snake.length += 1
+            self.snake_ate_apple()
 
         pygame.display.update()
 
@@ -80,32 +77,20 @@ class Game:
         value = score_font.render("Your Score: " + str(self.score), True, Window.COLORS["blue"])
         self.window.surface.blit(value, [0, 0])
 
-
     def message(self, msg, color):
         font_style = pygame.font.SysFont("bahnschrift", 25)
         mesg = font_style.render(msg, True, color)
         self.window.surface.blit(mesg, [20, 100])
         pygame.display.update()
 
-    def refreshScreen(self):
-        self.window.surface.fill(Window.COLORS["black"])
+    def refresh_screen(self):
+        self.window.surface.fill(Window.COLORS["white"])
 
     def create_snake(self):
         self.snake = Snake(Window.COLORS["green"], self.snake_initial_pos, self.snake_block)
 
-    def update_snake_coordinates(self):
-        self.snake.head = []
-        self.snake.head.append(self.snake.pos_x)
-        self.snake.head.append(self.snake.pos_y)
-        self.snake.body.append(self.snake.head)
-        if len(self.snake.body) > self.snake.length:
-            del self.snake.body[0]
-
-    def snake_hits_itself(self):
-        for block in self.snake.body[:-1]:
-            if block == self.snake.head:
-                return True
-        return False
+    def create_apple(self):
+        self.apple = Apple(self.screen_size[0], self.screen_size[1], self.snake.block, Window.COLORS["red"])
 
     def draw_snake(self):
         surface = self.window.surface
@@ -115,11 +100,6 @@ class Game:
         for block in self.snake.body:
             pygame.draw.rect(surface, color, [block[0], block[1], *area_per_block])
 
-
-
-    def create_apple(self):
-        self.apple = Apple(self.screen_size[0], self.screen_size[1], self.snake.block, Window.COLORS["red"])
-
     def drawn_apple(self):
         surface = self.window.surface
         pos = (self.apple.pos_x, self.apple.pos_y)
@@ -128,6 +108,16 @@ class Game:
 
         pygame.draw.rect(surface, color, [*pos, block, block])
 
+    def snake_ate_apple(self):
+        self.create_apple()
+        self.score += 1
+        self.snake.length += 1
+
+    def snake_hitted_itself(self):
+        for block in self.snake.body[:-1]:
+            if block == self.snake.head:
+                return True
+        return False
 
     def listen_to_events(self):
         for event in pygame.event.get():
@@ -146,8 +136,7 @@ class Game:
             if self.game_is_paused:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
-                        self.game_over = True
-                        self.game_is_paused = False
+                        self.quit()
                     if event.key == pygame.K_c:
                         self.game_is_paused = False
                         self.restart()
